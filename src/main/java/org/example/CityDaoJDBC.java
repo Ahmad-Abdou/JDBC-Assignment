@@ -7,22 +7,19 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class CityDaoJDBC implements CityDao {
 
 
     @Override
     public City findById(int id) {
         City city = new City();
-        Connection connection = mySqlConnection();
-        String query = "select id,name from city where id = ?";
+        Connection connection = MySQLConnection.connect();
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setInt(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                System.out.println(resultSet.getInt("id") + " - " + resultSet.getString("name"));
-            } else {
-                System.out.println(" No data ");
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery("select name,id from city where id = " + id);
+            while (result.next()) {
+                System.out.println("Finding by id : " + result.getString("name"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -34,19 +31,22 @@ public class CityDaoJDBC implements CityDao {
     @Override
     public List<City> findByCode(String code) {
         List<City> list = new ArrayList<>();
-        Connection connection = mySqlConnection();
-       String query = "select id,name,countryCode from city where countryCode = ?";
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1,code);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while(resultSet.next()){
-                int id = resultSet.getInt("id");
-                String name = resultSet.getString("name");
-                String countryCode = resultSet.getString("countryCode");
-                list.add(new City(id,name,countryCode));
-            }
+        String query = "select * from city where countryCode=?";
 
+        try (
+                PreparedStatement preparedStatement = MySQLConnection.connect().prepareStatement(query)
+        ) {
+            preparedStatement.setString(1, code);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(new City(
+                        resultSet.getInt(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getInt(5)
+                ));
+            }
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -54,11 +54,27 @@ public class CityDaoJDBC implements CityDao {
         return list;
     }
 
+
     @Override
     public List<City> findByName(String name) {
-        return null;
+        List<City> list = new ArrayList<>();
+        try (PreparedStatement preparedStatement = MySQLConnection.connect().prepareStatement("select * from city where name=?")) {
+            preparedStatement.setString(1, name);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(new City(
+                        resultSet.getInt(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getInt(5)
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
-
     @Override
     public List<City> findAll() {
 
@@ -80,13 +96,5 @@ public class CityDaoJDBC implements CityDao {
         return 0;
     }
 
-    public static Connection mySqlConnection() {
-        Connection connection = null;
-        try {
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/world", "root", "1234");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return connection;
-    }
+
 }
