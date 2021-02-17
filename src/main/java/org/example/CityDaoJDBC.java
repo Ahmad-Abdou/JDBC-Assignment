@@ -1,3 +1,5 @@
+package org.example;
+
 import org.example.dao.CityDao;
 import org.example.model.City;
 
