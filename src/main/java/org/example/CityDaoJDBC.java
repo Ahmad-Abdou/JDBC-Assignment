@@ -53,8 +53,6 @@ public class CityDaoJDBC implements CityDao {
         }
         return list;
     }
-
-
     @Override
     public List<City> findByName(String name) {
         List<City> list = new ArrayList<>();
@@ -77,10 +75,23 @@ public class CityDaoJDBC implements CityDao {
     }
     @Override
     public List<City> findAll() {
-
-        return null;
+      List<City> list = new ArrayList<>();
+        try (PreparedStatement preparedStatement = MySQLConnection.connect().prepareStatement("select * from city")){
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next()){
+                    list.add(new City(
+                    resultSet.getInt(1),
+                    resultSet.getString(2),
+                    resultSet.getString(3),
+                    resultSet.getString(4),
+                    resultSet.getInt(5)));
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
-
     @Override
     public City add(City city) {
         return null;
