@@ -94,18 +94,65 @@ public class CityDaoJDBC implements CityDao {
     }
     @Override
     public City add(City city) {
-        return null;
+
+        try (            PreparedStatement preparedStatement = MySQLConnection.connect().prepareStatement("Insert into city (Name , countrycode , District ,Population) values (?,?,?,?)",Statement.RETURN_GENERATED_KEYS);
+        ){
+            preparedStatement.setString(1,city.getName());
+            preparedStatement.setString(2,city.getCountryCode());
+            preparedStatement.setString(3,city.getDistrict());
+            preparedStatement.setInt(4,city.getPopulation());
+            preparedStatement.executeUpdate();
+
+            ResultSet resultSet = preparedStatement.getGeneratedKeys();
+            int key = 0;
+            while(resultSet.next()){
+                key = resultSet.getInt(1);
+
+            }
+            city.setId(key);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return city;
     }
 
     @Override
     public City update(City city) {
-        return null;
+        System.out.println("Updating");
+
+        String query = "UPDATE city SET `Name` = '" +city.getName()+
+                "', CountryCode = '" +city.getCountryCode()+
+                "', District = '" +city.getDistrict()+
+                "', Population =" + city.getPopulation()+
+                " where id = "+city.getId();
+
+
+        City city2 = new City();
+
+        try(
+                PreparedStatement preparedStatement = MySQLConnection.connect().prepareStatement(query)
+        ) {
+            preparedStatement.executeUpdate(query);
+            city2 = city;
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return city2;
     }
 
     @Override
     public int delete(City city) {
-        return 0;
+        int output= 0;
+        try ( PreparedStatement preparedStatement = MySQLConnection.connect().prepareStatement("delete from city where id = ?"))
+        {
+            preparedStatement.setInt(1,city.getId());
+           output = preparedStatement.executeUpdate();
+            System.out.println(output);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return output;
     }
-
-
 }
